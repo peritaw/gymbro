@@ -2,7 +2,10 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './src/app.module';
 
+console.log('Serverless script loaded!');
+
 let cachedApp: any;
+
 
 async function createApp() {
   const app = await NestFactory.create(AppModule, { logger: false });
