@@ -46,6 +46,7 @@ export class TrainingLogService {
       existing.completed = dto.completed;
       existing.notes = dto.notes ?? existing.notes;
       existing.durationMinutes = dto.durationMinutes ?? existing.durationMinutes;
+      if (dto.weekNumber !== undefined) existing.weekNumber = dto.weekNumber;
       
       if (exerciseLogs) {
         existing.exerciseLogs = exerciseLogs.map(el => ({ ...el, trainingLogId: existing.id })) as any;

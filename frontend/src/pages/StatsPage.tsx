@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Flame, Trophy, Activity, CheckCircle2, TrendingUp, Search } from 'lucide-react';
+import { Flame, Trophy, Activity, CheckCircle2, TrendingUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import type { Stats, Routine } from '../types';
 import api from '../api/client';
@@ -11,6 +11,7 @@ export default function StatsPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [selectedExerciseId, setSelectedExerciseId] = useState<number | null>(null);
+  const [selectedWeekFilter, setSelectedWeekFilter] = useState<number | 'all'>('all');
   const [history, setHistory] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isHistLoading, setIsHistLoading] = useState(false);
@@ -43,7 +44,8 @@ export default function StatsPage() {
         return {
           date: new Date(log.date).toLocaleDateString('es', { day: '2-digit', month: '2-digit' }),
           weight: maxWeight,
-          fullDate: log.date
+          fullDate: log.date,
+          week: log.weekNumber || 1
         };
       }).sort((a: any, b: any) => new Date(a.fullDate).getTime() - new Date(b.fullDate).getTime());
       
@@ -60,6 +62,10 @@ export default function StatsPage() {
       fetchExerciseHistory(selectedExerciseId);
     }
   }, [selectedExerciseId]);
+
+  const filteredHistory = selectedWeekFilter === 'all' 
+    ? history 
+    : history.filter(h => h.week === selectedWeekFilter);
 
   if (isLoading || !stats) {
     return (
@@ -177,36 +183,52 @@ export default function StatsPage() {
         className="glass-panel" 
         style={{ padding: '1.5rem', marginBottom: '4rem' }}
       >
-        <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-          <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Search size={16} /> Seleccioná un ejercicio para ver tu progreso
-          </label>
-          <select 
-            className="form-input" 
-            style={{ appearance: 'auto', paddingRight: '2rem' }}
-            value={selectedExerciseId || ''}
-            onChange={(e) => setSelectedExerciseId(Number(e.target.value))}
-          >
-            <option value="" disabled>Elegir ejercicio...</option>
-            {routines.map(routine => (
-              <optgroup key={routine.id} label={routine.name}>
-                {routine.days.flatMap(day => day.exercises).map(ex => (
-                  <option key={ex.id} value={ex.id}>{ex.name}</option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+          <div className="form-group">
+            <label className="form-label">Ejercicio</label>
+            <select 
+              className="form-input" 
+              style={{ appearance: 'auto', paddingRight: '2rem' }}
+              value={selectedExerciseId || ''}
+              onChange={(e) => setSelectedExerciseId(Number(e.target.value))}
+            >
+              <option value="" disabled>Elegir ejercicio...</option>
+              {routines.map(routine => (
+                <optgroup key={routine.id} label={routine.name}>
+                  {routine.days.flatMap(day => day.exercises).map(ex => (
+                    <option key={ex.id} value={ex.id}>{ex.name}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Semana del Ciclo</label>
+            <select 
+              className="form-input" 
+              style={{ appearance: 'auto', paddingRight: '2rem' }}
+              value={selectedWeekFilter}
+              onChange={(e) => setSelectedWeekFilter(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+            >
+              <option value="all">Todas las semanas</option>
+              <option value={1}>Semana 1</option>
+              <option value={2}>Semana 2</option>
+              <option value={3}>Semana 3</option>
+              <option value={4}>Semana 4</option>
+            </select>
+          </div>
         </div>
 
         {selectedExerciseId ? (
-          <div style={{ height: '250px', width: '100%', marginTop: '1rem' }}>
+          <div style={{ height: '300px', width: '100%', marginTop: '1rem' }}>
             {isHistLoading ? (
               <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{ width: '20px', height: '20px', border: '2px solid var(--border-subtle)', borderTopColor: 'var(--accent-primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
               </div>
-            ) : history.length > 0 ? (
+            ) : filteredHistory.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={history}>
+                <LineChart data={filteredHistory}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                   <XAxis 
                     dataKey="date" 
@@ -226,6 +248,12 @@ export default function StatsPage() {
                     contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', fontSize: '12px' }}
                     itemStyle={{ color: 'var(--accent-primary)', fontWeight: 700 }}
                     cursor={{ stroke: 'var(--accent-primary)', strokeWidth: 1, strokeDasharray: '4 4' }}
+                    labelFormatter={(label, payload) => {
+                      if (payload && payload.length > 0) {
+                        return `${label} - Semana ${payload[0].payload.week}`;
+                      }
+                      return label;
+                    }}
                   />
                   <Line 
                     type="monotone" 
@@ -240,14 +268,14 @@ export default function StatsPage() {
               </ResponsiveContainer>
             ) : (
               <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)', textAlign: 'center' }}>
-                <p className="small">No hay historial para este ejercicio todavía.<br/>¡Empezá a entrenar para ver tus datos!</p>
+                <p className="small">No hay historial para los filtros seleccionados.<br/>¡Elegí otro ejercicio o semana!</p>
               </div>
             )}
           </div>
         ) : (
           <div style={{ textAlign: 'center', padding: '2rem 0', opacity: 0.5 }}>
             <Activity size={48} style={{ margin: '0 auto 1rem', display: 'block' }} />
-            <p className="small">Seleccioná un ejercicio de la lista superior para visualizar tus pesos históricos.</p>
+            <p className="small">Seleccioná un ejercicio y opcionalmente una semana para ver tu evolución.</p>
           </div>
         )}
       </motion.div>

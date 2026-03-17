@@ -12,12 +12,11 @@ export interface AuthResponse {
   user: User;
 }
 
-export interface RoutineDay {
-  id?: number;
-  dayNumber: number;
-  name: string;
-  muscleGroup?: string;
-  exercises: Exercise[];
+export interface WeekTarget {
+  week: number;
+  weight: number;
+  reps: number;
+  sets: number;
 }
 
 export interface Exercise {
@@ -28,6 +27,14 @@ export interface Exercise {
   weight?: number;
   notes?: string;
   order?: number;
+  weekTargets?: WeekTarget[];
+}
+export interface RoutineDay {
+  id?: number;
+  dayNumber: number;
+  name: string;
+  muscleGroup?: string;
+  exercises: Exercise[];
 }
 
 export interface Routine {
@@ -47,6 +54,7 @@ export interface TrainingLog {
   completed: boolean;
   notes?: string;
   durationMinutes?: number;
+  weekNumber?: number;
   exerciseLogs?: ExerciseLog[];
 }
 

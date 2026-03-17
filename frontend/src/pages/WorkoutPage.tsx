@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Dumbbell, Check, CheckCircle2, ChevronLeft, Flag } from 'lucide-react';
 import api from '../api/client';
-import type { Routine, RoutineDay, ExerciseLog } from '../types';
+import type { Routine, RoutineDay } from '../types';
 import RestTimer from '../components/workout/RestTimer';
 
 export default function WorkoutPage() {
@@ -19,6 +19,7 @@ export default function WorkoutPage() {
   const [setPerformance, setSetPerformance] = useState<{ 
     [exerciseId: number]: { weight: string, reps: string }[] 
   }>({});
+  const [weekNumber, setWeekNumber] = useState(1);
   const [showTimer, setShowTimer] = useState(false);
   const [isFinishing, setIsFinishing] = useState(false);
   const [startTime] = useState(Date.now());
@@ -29,24 +30,27 @@ export default function WorkoutPage() {
         const { data } = await api.get(`/routines/${id}`);
         setRoutine(data);
         
-        // Find which day to do.
-        // For simplicity now, we prompt the user or default to Day 1.
-        // A smarter app would track the *last* day completed and suggest the *next* day.
         if (data.days && data.days.length > 0) {
           const selectedDay = dayId 
             ? data.days.find((d: any) => d.id === Number(dayId)) || data.days[0]
             : data.days[0];
           setDay(selectedDay);
           
-          // Init trackers
+          // Init trackers based on current week
           const completeness: { [ex: number]: boolean[] } = {};
           const performance: { [ex: number]: { weight: string, reps: string }[] } = {};
           
           selectedDay.exercises.forEach((ex: any) => {
-             completeness[ex.id] = Array(ex.sets).fill(false);
-             performance[ex.id] = Array(ex.sets).fill({ 
-               weight: ex.weight?.toString() || '', 
-               reps: ex.reps?.toString() || '' 
+             // Find target for this week if periodized
+             const weekTarget = ex.weekTargets?.find((w: any) => w.week === weekNumber);
+             const targetSets = weekTarget?.sets || ex.sets;
+             const targetReps = weekTarget?.reps || ex.reps;
+             const targetWeight = weekTarget?.weight || ex.weight;
+
+             completeness[ex.id] = Array(targetSets).fill(false);
+             performance[ex.id] = Array(targetSets).fill({ 
+               weight: targetWeight?.toString() || '', 
+               reps: targetReps?.toString() || '' 
              });
           });
           
@@ -63,7 +67,7 @@ export default function WorkoutPage() {
       }
     };
     initWorkout();
-  }, [id, dayId, navigate]);
+  }, [id, dayId, navigate, weekNumber]);
 
   const toggleSet = (exerciseId: number, setIdx: number) => {
     const newSets = { ...completedSets };
@@ -112,7 +116,7 @@ export default function WorkoutPage() {
     try {
       const durationMinutes = Math.round((Date.now() - startTime) / 60000);
       
-      const exerciseLogs: ExerciseLog[] = [];
+      const exerciseLogs: any[] = [];
       for (const exIdStr in setPerformance) {
         const exId = Number(exIdStr);
         const setsResult = setPerformance[exId];
@@ -135,6 +139,7 @@ export default function WorkoutPage() {
         date: new Date().toISOString().split('T')[0],
         completed: true,
         durationMinutes,
+        weekNumber,
         exerciseLogs
       });
       
@@ -178,6 +183,33 @@ export default function WorkoutPage() {
             </div>
           </div>
           <span className="h3" style={{ color: 'var(--accent-primary)' }}>{progress}%</span>
+        </div>
+
+        {/* Week Selector */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', background: 'var(--bg-tertiary)', padding: '0.5rem', borderRadius: 'var(--radius-md)' }}>
+          <span className="small" style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>SEMANA:</span>
+          <div style={{ display: 'flex', gap: '0.25rem', flex: 1 }}>
+            {[1, 2, 3, 4].map(w => (
+              <button
+                key={w}
+                onClick={() => setWeekNumber(w)}
+                style={{
+                  flex: 1,
+                  padding: '0.4rem 0',
+                  borderRadius: 'var(--radius-sm)',
+                  border: 'none',
+                  background: weekNumber === w ? 'var(--accent-primary)' : 'transparent',
+                  color: weekNumber === w ? 'white' : 'var(--text-secondary)',
+                  fontWeight: 700,
+                  fontSize: '0.8rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {w}
+              </button>
+            ))}
+          </div>
         </div>
         
         <div style={{ height: '4px', background: 'var(--bg-tertiary)', borderRadius: '2px', overflow: 'hidden' }}>

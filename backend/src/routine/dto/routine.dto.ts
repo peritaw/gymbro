@@ -9,6 +9,20 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
+export class WeekTargetDto {
+  @IsNumber()
+  week: number;
+
+  @IsNumber()
+  weight: number;
+
+  @IsNumber()
+  reps: number;
+
+  @IsNumber()
+  sets: number;
+}
+
 export class CreateExerciseDto {
   @IsString()
   name: string;
@@ -32,6 +46,12 @@ export class CreateExerciseDto {
   @IsOptional()
   @IsNumber()
   order?: number;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => WeekTargetDto)
+  weekTargets?: WeekTargetDto[];
 }
 
 export class CreateRoutineDayDto {

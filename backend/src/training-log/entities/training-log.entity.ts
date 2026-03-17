@@ -39,6 +39,9 @@ export class TrainingLog {
   @Column({ nullable: true })
   durationMinutes: number;
 
+  @Column({ default: 1 })
+  weekNumber: number;
+
   @Column()
   userId: number;
 

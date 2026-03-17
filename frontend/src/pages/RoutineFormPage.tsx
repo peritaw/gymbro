@@ -319,7 +319,7 @@ export default function RoutineFormPage() {
                     .filter(ex => ex.name.toLowerCase().includes(currentExercise.name!.toLowerCase()) && ex.name.toLowerCase() !== currentExercise.name!.toLowerCase())
                     .slice(0, 5)
                     .map(ex => (
-                      <div 
+                       <div 
                         key={ex.id}
                         style={{ padding: '0.5rem 1rem', cursor: 'pointer', borderBottom: '1px solid var(--border-subtle)' }}
                         onClick={() => {
@@ -335,23 +335,98 @@ export default function RoutineFormPage() {
               )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div className="form-group">
-                <label className="form-label">Series</label>
-                <input type="number" className="form-input" value={currentExercise.sets} onChange={(e) => setCurrentExercise({...currentExercise, sets: parseInt(e.target.value) || 0})} min="1" />
+            <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', cursor: 'pointer' }} onClick={() => {
+              const isPeriodizing = !currentExercise.weekTargets;
+              if (isPeriodizing) {
+                const defaults = [1, 2, 3, 4].map(w => ({ 
+                  week: w, 
+                  sets: currentExercise.sets || 3, 
+                  reps: currentExercise.reps || 10, 
+                  weight: currentExercise.weight || 0 
+                }));
+                setCurrentExercise({ ...currentExercise, weekTargets: defaults });
+              } else {
+                setCurrentExercise({ ...currentExercise, weekTargets: undefined });
+              }
+            }}>
+              <div style={{ 
+                width: '18px', height: '18px', border: '2px solid var(--accent-primary)', borderRadius: '4px',
+                background: currentExercise.weekTargets ? 'var(--accent-primary)' : 'transparent',
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
+              }}>
+                {currentExercise.weekTargets && <div style={{ width: '8px', height: '8px', background: 'white', borderRadius: '1px' }} />}
               </div>
-              <div className="form-group">
-                <label className="form-label">Repeticiones</label>
-                <input type="number" className="form-input" value={currentExercise.reps} onChange={(e) => setCurrentExercise({...currentExercise, reps: parseInt(e.target.value) || 0})} min="1" />
-              </div>
+              <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Activar Periodización de 4 semanas</span>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Peso estimativo (kg) Opcional</label>
-              <input type="number" className="form-input" value={currentExercise.weight || ''} onChange={(e) => setCurrentExercise({...currentExercise, weight: parseFloat(e.target.value) || 0})} min="0" step="0.5" />
-            </div>
+            {currentExercise.weekTargets ? (
+              <div style={{ background: 'var(--bg-primary)', borderRadius: 'var(--radius-md)', padding: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1.2fr', gap: '0.5rem', marginBottom: '0.5rem', textAlign: 'center' }}>
+                  <span className="small" style={{ opacity: 0.5 }}>SEM</span>
+                  <span className="small" style={{ opacity: 0.5 }}>SETS</span>
+                  <span className="small" style={{ opacity: 0.5 }}>REPS</span>
+                  <span className="small" style={{ opacity: 0.5 }}>KG</span>
+                </div>
+                {currentExercise.weekTargets.map((target, idx) => (
+                  <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1.2fr', gap: '0.5rem', marginBottom: '0.5rem', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>Semana {target.week}</span>
+                    <input 
+                      type="number" 
+                      className="form-input" 
+                      style={{ padding: '0.25rem', textAlign: 'center' }} 
+                      value={target.sets} 
+                      onChange={(e) => {
+                        const newTargets = [...currentExercise.weekTargets!];
+                        newTargets[idx].sets = parseInt(e.target.value) || 0;
+                        setCurrentExercise({ ...currentExercise, weekTargets: newTargets });
+                      }}
+                    />
+                    <input 
+                      type="number" 
+                      className="form-input" 
+                      style={{ padding: '0.25rem', textAlign: 'center' }} 
+                      value={target.reps} 
+                      onChange={(e) => {
+                        const newTargets = [...currentExercise.weekTargets!];
+                        newTargets[idx].reps = parseInt(e.target.value) || 0;
+                        setCurrentExercise({ ...currentExercise, weekTargets: newTargets });
+                      }}
+                    />
+                    <input 
+                      type="number" 
+                      className="form-input" 
+                      style={{ padding: '0.25rem', textAlign: 'center' }} 
+                      value={target.weight} 
+                      onChange={(e) => {
+                        const newTargets = [...currentExercise.weekTargets!];
+                        newTargets[idx].weight = parseFloat(e.target.value) || 0;
+                        setCurrentExercise({ ...currentExercise, weekTargets: newTargets });
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label className="form-label">Series</label>
+                    <input type="number" className="form-input" value={currentExercise.sets} onChange={(e) => setCurrentExercise({...currentExercise, sets: parseInt(e.target.value) || 0})} min="1" />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Repeticiones</label>
+                    <input type="number" className="form-input" value={currentExercise.reps} onChange={(e) => setCurrentExercise({...currentExercise, reps: parseInt(e.target.value) || 0})} min="1" />
+                  </div>
+                </div>
 
-            <button className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }} onClick={saveExercise} disabled={!currentExercise.name}>
+                <div className="form-group">
+                  <label className="form-label">Peso estimativo (kg) Opcional</label>
+                  <input type="number" className="form-input" value={currentExercise.weight || ''} onChange={(e) => setCurrentExercise({...currentExercise, weight: parseFloat(e.target.value) || 0})} min="0" step="0.5" />
+                </div>
+              </>
+            )}
+
+            <button className="btn btn-primary" style={{ width: '100%', marginTop: '0.5rem' }} onClick={saveExercise} disabled={!currentExercise.name}>
               {editingExerciseIdx !== null ? 'Guardar Cambios' : 'Añadir a la rutina'}
             </button>
           </motion.div>

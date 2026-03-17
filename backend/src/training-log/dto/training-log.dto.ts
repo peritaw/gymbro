@@ -38,6 +38,10 @@ export class CreateTrainingLogDto {
   durationMinutes?: number;
 
   @IsOptional()
+  @IsNumber()
+  weekNumber?: number;
+
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateExerciseLogDto)

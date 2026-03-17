@@ -36,4 +36,7 @@ export class Exercise {
 
   @Column()
   routineDayId: number;
+
+  @Column({ type: 'json', nullable: true })
+  weekTargets: { week: number; weight: number; reps: number; sets: number }[];
 }
