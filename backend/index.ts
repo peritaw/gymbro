@@ -1,14 +1,13 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import { AppModule } from './src/app.module';
+import { TestAppModule } from './test-app.module';
 
 console.log('Serverless script loaded!');
 
 let cachedApp: any;
 
-
 async function createApp() {
-  const app = await NestFactory.create(AppModule, { logger: false });
+  const app = await NestFactory.create(TestAppModule, { logger: true });
 
   app.enableCors({
     origin: process.env.FRONTEND_URL || 'http://localhost:5173',
