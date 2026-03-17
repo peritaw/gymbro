@@ -20,7 +20,6 @@ async function createApp() {
     }),
   );
 
-  app.setGlobalPrefix('api');
   await app.init();
   return app;
 }
