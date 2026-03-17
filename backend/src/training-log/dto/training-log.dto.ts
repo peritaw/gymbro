@@ -1,4 +1,19 @@
-import { IsString, IsOptional, IsBoolean, IsNumber, IsDateString } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsNumber, IsDateString, IsArray, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+
+export class CreateExerciseLogDto {
+  @IsNumber()
+  exerciseId: number;
+
+  @IsNumber()
+  setNumber: number;
+
+  @IsNumber()
+  weight: number;
+
+  @IsNumber()
+  reps: number;
+}
 
 export class CreateTrainingLogDto {
   @IsNumber()
@@ -21,4 +36,10 @@ export class CreateTrainingLogDto {
   @IsOptional()
   @IsNumber()
   durationMinutes?: number;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateExerciseLogDto)
+  exerciseLogs?: CreateExerciseLogDto[];
 }

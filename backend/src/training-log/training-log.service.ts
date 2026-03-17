@@ -28,6 +28,8 @@ export class TrainingLogService {
   }
 
   async create(dto: CreateTrainingLogDto, userId: number): Promise<TrainingLog> {
+    const { exerciseLogs, ...rest } = dto;
+    
     // Check if log already exists for this date + routine day
     const existing = await this.logRepository.findOne({
       where: {
@@ -36,6 +38,7 @@ export class TrainingLogService {
         routineDayId: dto.routineDayId,
         date: dto.date,
       },
+      relations: ['exerciseLogs'],
     });
 
     if (existing) {
@@ -43,15 +46,30 @@ export class TrainingLogService {
       existing.completed = dto.completed;
       existing.notes = dto.notes ?? existing.notes;
       existing.durationMinutes = dto.durationMinutes ?? existing.durationMinutes;
+      
+      if (exerciseLogs) {
+        existing.exerciseLogs = exerciseLogs.map(el => ({ ...el, trainingLogId: existing.id })) as any;
+      }
+      
       return this.logRepository.save(existing);
     }
 
     const log = this.logRepository.create({
-      ...dto,
+      ...rest,
       userId,
+      exerciseLogs: exerciseLogs || [],
     });
 
     return this.logRepository.save(log);
+  }
+
+  async getExerciseHistory(userId: number, exerciseId: number) {
+    return this.logRepository.createQueryBuilder('log')
+      .leftJoinAndSelect('log.exerciseLogs', 'exerciseLog')
+      .where('log.userId = :userId', { userId })
+      .andWhere('exerciseLog.exerciseId = :exerciseId', { exerciseId })
+      .orderBy('log.date', 'DESC')
+      .getMany();
   }
 
   async getStats(userId: number) {

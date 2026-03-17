@@ -41,7 +41,7 @@ export class AuthService {
     await this.userRepository.save(user);
 
     const token = this.generateToken(user);
-    return { token, user: { id: user.id, email: user.email, name: user.name, weeklyGoal: user.weeklyGoal } };
+    return { token, user: { id: user.id, email: user.email, name: user.name, weeklyGoal: user.weeklyGoal, weight: user.weight, height: user.height } };
   }
 
   async login(dto: LoginDto) {
@@ -59,7 +59,7 @@ export class AuthService {
     }
 
     const token = this.generateToken(user);
-    return { token, user: { id: user.id, email: user.email, name: user.name, weeklyGoal: user.weeklyGoal } };
+    return { token, user: { id: user.id, email: user.email, name: user.name, weeklyGoal: user.weeklyGoal, weight: user.weight, height: user.height } };
   }
 
   async forgotPassword(email: string) {
@@ -107,19 +107,28 @@ export class AuthService {
   async getProfile(userId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) throw new UnauthorizedException();
-    return { id: user.id, email: user.email, name: user.name, weeklyGoal: user.weeklyGoal };
+    return { id: user.id, email: user.email, name: user.name, weeklyGoal: user.weeklyGoal, weight: user.weight, height: user.height };
   }
 
-  async updateProfile(userId: number, updateData: { name?: string, weeklyGoal?: number }) {
+  async updateProfile(userId: number, updateData: { name?: string, weeklyGoal?: number, weight?: number, height?: number }) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) throw new UnauthorizedException();
 
     if (updateData.name !== undefined) user.name = updateData.name;
     if (updateData.weeklyGoal !== undefined) user.weeklyGoal = updateData.weeklyGoal;
+    if (updateData.weight !== undefined) user.weight = updateData.weight;
+    if (updateData.height !== undefined) user.height = updateData.height;
 
     await this.userRepository.save(user);
 
-    return { id: user.id, email: user.email, name: user.name, weeklyGoal: user.weeklyGoal };
+    return { 
+      id: user.id, 
+      email: user.email, 
+      name: user.name, 
+      weeklyGoal: user.weeklyGoal,
+      weight: user.weight,
+      height: user.height
+    };
   }
 
   private generateToken(user: User): string {

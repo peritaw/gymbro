@@ -37,7 +37,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Post('profile')
-  updateProfile(@Request() req: any, @Body() updateData: { name?: string, weeklyGoal?: number }) {
+  updateProfile(@Request() req: any, @Body() updateData: { name?: string, weeklyGoal?: number, weight?: number, height?: number }) {
     return this.authService.updateProfile(req.user.userId, updateData);
   }
 }

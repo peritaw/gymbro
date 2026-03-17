@@ -30,6 +30,12 @@ export class User {
   @Column({ nullable: true, type: 'timestamp' })
   resetTokenExpiry: Date;
 
+  @Column({ type: 'float', nullable: true })
+  weight: number;
+
+  @Column({ type: 'float', nullable: true })
+  height: number;
+
   @CreateDateColumn()
   createdAt: Date;
 

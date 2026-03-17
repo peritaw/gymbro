@@ -5,8 +5,10 @@ import {
   ManyToOne,
   JoinColumn,
   CreateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { Routine } from '../../routine/entities/routine.entity';
+import { ExerciseLog } from './exercise-log.entity';
 
 @Entity('training_logs')
 export class TrainingLog {
@@ -39,6 +41,11 @@ export class TrainingLog {
 
   @Column()
   userId: number;
+
+  @OneToMany(() => ExerciseLog, (exerciseLog) => exerciseLog.trainingLog, {
+    cascade: true,
+  })
+  exerciseLogs: ExerciseLog[];
 
   @CreateDateColumn()
   createdAt: Date;
