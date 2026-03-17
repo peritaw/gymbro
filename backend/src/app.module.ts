@@ -7,6 +7,8 @@ import { TrainingLogModule } from './training-log/training-log.module';
 
 import { MeasurementsModule } from './measurements/measurements.module';
 import { ExercisesModule } from './exercises/exercises.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -37,7 +39,7 @@ import { ExercisesModule } from './exercises/exercises.module';
     MeasurementsModule,
     ExercisesModule,
   ],
-  controllers: [],
-  providers: [],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
