@@ -15,7 +15,7 @@ import { CreateRoutineDto, UpdateRoutineDto } from './dto/routine.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @UseGuards(JwtAuthGuard)
-@Controller('api/routines')
+@Controller('routines')
 export class RoutineController {
   constructor(private readonly routineService: RoutineService) {}
 
