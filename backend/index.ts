@@ -26,17 +26,11 @@ async function createApp() {
 }
 
 export default async function handler(req: any, res: any) {
-  console.log('Incoming request:', req.method, req.url);
-  try {
-    if (!cachedApp) {
-      console.log('Initializing NestJS app...');
-      cachedApp = await createApp();
-      console.log('NestJS app initialized.');
-    }
-    const httpAdapter = cachedApp.getHttpAdapter().getInstance();
-    httpAdapter(req, res);
-  } catch (error) {
-    console.error('Error in serverless handler:', error);
-    res.status(500).json({ error: 'Internal Server Error', message: error.message });
-  }
+  res.status(200).json({ 
+    message: 'Handler reached',
+    url: req.url,
+    method: req.method,
+    env: process.env.NODE_ENV
+  });
 }
+
