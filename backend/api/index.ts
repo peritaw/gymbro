@@ -25,6 +25,7 @@ async function createApp() {
 }
 
 export default async function handler(req: any, res: any) {
+  console.log('Incoming request:', req.method, req.url);
   if (!cachedApp) {
     cachedApp = await createApp();
   }
