@@ -15,7 +15,7 @@ import { CreateTrainingLogDto } from './dto/training-log.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @UseGuards(JwtAuthGuard)
-@Controller('api/training-logs')
+@Controller('training-logs')
 export class TrainingLogController {
   constructor(private readonly trainingLogService: TrainingLogService) {}
 
