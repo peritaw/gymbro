@@ -20,15 +20,23 @@ async function createApp() {
     }),
   );
 
+  app.setGlobalPrefix('api');
   await app.init();
   return app;
 }
 
 export default async function handler(req: any, res: any) {
   console.log('Incoming request:', req.method, req.url);
-  if (!cachedApp) {
-    cachedApp = await createApp();
+  try {
+    if (!cachedApp) {
+      console.log('Initializing NestJS app...');
+      cachedApp = await createApp();
+      console.log('NestJS app initialized.');
+    }
+    const httpAdapter = cachedApp.getHttpAdapter().getInstance();
+    httpAdapter(req, res);
+  } catch (error) {
+    console.error('Error in serverless handler:', error);
+    res.status(500).json({ error: 'Internal Server Error', message: error.message });
   }
-  const httpAdapter = cachedApp.getHttpAdapter().getInstance();
-  httpAdapter(req, res);
 }
