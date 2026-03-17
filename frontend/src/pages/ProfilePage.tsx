@@ -143,7 +143,7 @@ export default function ProfilePage() {
                 </div>
               </div>
               
-              <div style={{ position: 'relative', height: '8px', width: '100%', background: 'linear-gradient(to right, #3b82f6 0%, #3b82f6 18.5%, #10b981 18.5%, #10b981 25%, #f59e0b 25%, #f59e0b 30%, #ef4444 30%, #ef4444 100%)', borderRadius: '4px', overflow: 'visible', marginTop: '1rem' }}>
+              <div style={{ position: 'relative', height: '8px', width: '100%', background: 'linear-gradient(to right, #3b82f6 0%, #3b82f6 28.33%, #10b981 28.33%, #10b981 50%, #f59e0b 50%, #f59e0b 66.67%, #ef4444 66.67%, #ef4444 100%)', borderRadius: '4px', overflow: 'visible', marginTop: '1rem' }}>
                 <div style={{ 
                   position: 'absolute', 
                   left: `${Math.min(100, Math.max(0, (bmi - 10) / 30 * 100))}%`, 
@@ -156,12 +156,12 @@ export default function ProfilePage() {
                   transition: 'left 0.5s ease-out'
                 }} />
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
-                <span>10</span>
-                <span>18.5</span>
-                <span>25</span>
-                <span>30</span>
-                <span>40</span>
+              <div style={{ position: 'relative', height: '20px', marginTop: '4px' }}>
+                <span style={{ position: 'absolute', left: '0%', transform: 'translateX(-50%)', fontSize: '10px', color: 'var(--text-tertiary)' }}>10</span>
+                <span style={{ position: 'absolute', left: '28.33%', transform: 'translateX(-50%)', fontSize: '10px', color: 'var(--text-tertiary)' }}>18.5</span>
+                <span style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', fontSize: '10px', color: 'var(--text-tertiary)' }}>25</span>
+                <span style={{ position: 'absolute', left: '66.67%', transform: 'translateX(-50%)', fontSize: '10px', color: 'var(--text-tertiary)' }}>30</span>
+                <span style={{ position: 'absolute', left: '100%', transform: 'translateX(-50%)', fontSize: '10px', color: 'var(--text-tertiary)' }}>40</span>
               </div>
             </div>
           )}
