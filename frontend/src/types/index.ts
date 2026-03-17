@@ -3,6 +3,8 @@ export interface User {
   email: string;
   name: string;
   weeklyGoal: number;
+  weight?: number;
+  height?: number;
 }
 
 export interface AuthResponse {
@@ -45,6 +47,15 @@ export interface TrainingLog {
   completed: boolean;
   notes?: string;
   durationMinutes?: number;
+  exerciseLogs?: ExerciseLog[];
+}
+
+export interface ExerciseLog {
+  id?: number;
+  exerciseId: number;
+  setNumber: number;
+  weight: number;
+  reps: number;
 }
 
 export interface Stats {

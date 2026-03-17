@@ -3,11 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Dumbbell, Check, CheckCircle2, ChevronLeft, Flag } from 'lucide-react';
 import api from '../api/client';
-import type { Routine, RoutineDay } from '../types';
+import type { Routine, RoutineDay, ExerciseLog } from '../types';
 import RestTimer from '../components/workout/RestTimer';
 
 export default function WorkoutPage() {
-  const { id } = useParams();
+  const { id, dayId } = useParams();
   const navigate = useNavigate();
   
   const [routine, setRoutine] = useState<Routine | null>(null);
@@ -16,6 +16,9 @@ export default function WorkoutPage() {
   
   // Tracking state: arrays of booleans matching sets for each exercise
   const [completedSets, setCompletedSets] = useState<{ [exerciseId: number]: boolean[] }>({});
+  const [setPerformance, setSetPerformance] = useState<{ 
+    [exerciseId: number]: { weight: string, reps: string }[] 
+  }>({});
   const [showTimer, setShowTimer] = useState(false);
   const [isFinishing, setIsFinishing] = useState(false);
   const [startTime] = useState(Date.now());
@@ -30,15 +33,25 @@ export default function WorkoutPage() {
         // For simplicity now, we prompt the user or default to Day 1.
         // A smarter app would track the *last* day completed and suggest the *next* day.
         if (data.days && data.days.length > 0) {
-          const selectedDay = data.days[0]; // TODO: Let user select if multiple
+          const selectedDay = dayId 
+            ? data.days.find((d: any) => d.id === Number(dayId)) || data.days[0]
+            : data.days[0];
           setDay(selectedDay);
           
-          // Init completeness tracker
-          const tracker: { [ex: number]: boolean[] } = {};
+          // Init trackers
+          const completeness: { [ex: number]: boolean[] } = {};
+          const performance: { [ex: number]: { weight: string, reps: string }[] } = {};
+          
           selectedDay.exercises.forEach((ex: any) => {
-             tracker[ex.id] = Array(ex.sets).fill(false);
+             completeness[ex.id] = Array(ex.sets).fill(false);
+             performance[ex.id] = Array(ex.sets).fill({ 
+               weight: ex.weight?.toString() || '', 
+               reps: ex.reps?.toString() || '' 
+             });
           });
-          setCompletedSets(tracker);
+          
+          setCompletedSets(completeness);
+          setSetPerformance(performance);
         } else {
           navigate('/routines');
         }
@@ -50,7 +63,7 @@ export default function WorkoutPage() {
       }
     };
     initWorkout();
-  }, [id, navigate]);
+  }, [id, dayId, navigate]);
 
   const toggleSet = (exerciseId: number, setIdx: number) => {
     const newSets = { ...completedSets };
@@ -64,6 +77,14 @@ export default function WorkoutPage() {
     if (!wasCompleted) {
       setShowTimer(true);
     }
+  };
+
+  const updatePerfValue = (exerciseId: number, setIdx: number, field: 'weight' | 'reps', value: string) => {
+    const newPerf = { ...setPerformance };
+    const exPerf = [...newPerf[exerciseId]];
+    exPerf[setIdx] = { ...exPerf[setIdx], [field]: value };
+    newPerf[exerciseId] = exPerf;
+    setSetPerformance(newPerf);
   };
 
   const getProgressPercentage = () => {
@@ -91,12 +112,30 @@ export default function WorkoutPage() {
     try {
       const durationMinutes = Math.round((Date.now() - startTime) / 60000);
       
+      const exerciseLogs: ExerciseLog[] = [];
+      for (const exIdStr in setPerformance) {
+        const exId = Number(exIdStr);
+        const setsResult = setPerformance[exId];
+        const completed = completedSets[exId];
+        setsResult.forEach((set, idx) => {
+          if (completed[idx]) {
+            exerciseLogs.push({
+              exerciseId: exId,
+              setNumber: idx + 1,
+              weight: Number(set.weight) || 0,
+              reps: Number(set.reps) || 0,
+            });
+          }
+        });
+      }
+
       await api.post('/training-logs', {
         routineId: routine.id,
         routineDayId: day.id,
         date: new Date().toISOString().split('T')[0],
         completed: true,
-        durationMinutes
+        durationMinutes,
+        exerciseLogs
       });
       
       // Navigate to stats or home with success message
@@ -187,29 +226,56 @@ export default function WorkoutPage() {
                 </div>
               </div>
 
-              {/* Sets Checklist */}
-              <div style={{ padding: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              {/* Detailed Sets Tracking */}
+              <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 1fr 40px', gap: '1rem', alignItems: 'center', padding: '0 0.5rem' }}>
+                  <span className="small " style={{ textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '0.625rem', fontWeight: 700 }}>SERIE</span>
+                  <span className="small" style={{ textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '0.625rem', fontWeight: 700 }}>KG</span>
+                  <span className="small" style={{ textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '0.625rem', fontWeight: 700 }}>REPS</span>
+                  <span className="small"></span>
+                </div>
                 {sets.map((isCompleted, setIdx) => (
-                  <button
-                    key={setIdx}
-                    onClick={() => toggleSet(ex.id || 0, setIdx)}
-                    style={{
-                      flex: 1,
-                      minWidth: '40px',
-                      height: '40px',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      borderRadius: 'var(--radius-sm)',
-                      background: isCompleted ? 'var(--success)' : 'var(--bg-tertiary)',
-                      color: isCompleted ? 'white' : 'var(--text-secondary)',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontWeight: 600,
-                      transition: 'all 0.2s',
-                      boxShadow: isCompleted ? '0 0 10px rgba(16, 185, 129, 0.3)' : 'none'
-                    }}
-                  >
-                    {isCompleted ? <Check size={20} /> : setIdx + 1}
-                  </button>
+                  <div key={setIdx} style={{ 
+                    display: 'grid', gridTemplateColumns: '40px 1fr 1fr 40px', gap: '1rem', alignItems: 'center',
+                    padding: '0.5rem', borderRadius: 'var(--radius-sm)',
+                    background: isCompleted ? 'rgba(16, 185, 129, 0.05)' : 'rgba(255, 255, 255, 0.02)',
+                    border: `1px solid ${isCompleted ? 'rgba(16, 185, 129, 0.3)' : 'rgba(255, 255, 255, 0.05)'}`,
+                    transition: 'all 0.2s'
+                  }}>
+                    <div style={{ textAlign: 'center', fontWeight: 700, opacity: isCompleted ? 1 : 0.5 }}>{setIdx + 1}</div>
+                    <input 
+                      type="number" 
+                      className="form-input" 
+                      style={{ padding: '0.4rem', textAlign: 'center', fontSize: '0.875rem', height: '36px' }}
+                      value={setPerformance[ex.id || 0]?.[setIdx]?.weight || ''}
+                      onChange={(e) => updatePerfValue(ex.id || 0, setIdx, 'weight', e.target.value)}
+                      placeholder={ex.weight?.toString() || "0"}
+                    />
+                    <input 
+                      type="number" 
+                      className="form-input" 
+                      style={{ padding: '0.4rem', textAlign: 'center', fontSize: '0.875rem', height: '36px' }}
+                      value={setPerformance[ex.id || 0]?.[setIdx]?.reps || ''}
+                      onChange={(e) => updatePerfValue(ex.id || 0, setIdx, 'reps', e.target.value)}
+                      placeholder={ex.reps?.toString() || "0"}
+                    />
+                    <button
+                      onClick={() => toggleSet(ex.id || 0, setIdx)}
+                      style={{
+                        width: '32px', height: '32px', 
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        borderRadius: 'var(--radius-full)',
+                        background: isCompleted ? 'var(--success)' : 'var(--bg-tertiary)',
+                        color: isCompleted ? 'white' : 'var(--text-tertiary)',
+                        border: 'none',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        boxShadow: isCompleted ? '0 0 10px rgba(16, 185, 129, 0.4)' : 'none'
+                      }}
+                    >
+                      {isCompleted ? <Check size={18} /> : <div style={{ width: '12px', height: '12px', borderRadius: '2px', border: '2px solid currentColor' }} />}
+                    </button>
+                  </div>
                 ))}
               </div>
             </motion.div>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
-import { Flame, Play, Clock, CalendarDays, Plus, Dumbbell } from 'lucide-react';
+import { Flame, Clock, CalendarDays, Plus, Dumbbell } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '../api/client';
 import type { Routine, Stats } from '../types';
@@ -158,27 +158,33 @@ export default function HomePage() {
               <p className="p" style={{ marginBottom: '1.5rem', fontSize: '0.875rem' }}>{activeRoutine.description}</p>
             )}
 
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+            <p className="small" style={{ color: 'var(--text-tertiary)', marginBottom: '0.75rem' }}>Elegí el día de hoy:</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
               {activeRoutine.days.map((day, idx) => (
-                <div key={idx} style={{ 
-                  width: '32px', height: '32px', 
-                  borderRadius: 'var(--radius-sm)', 
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: 'var(--bg-tertiary)',
-                  fontSize: '0.875rem', fontWeight: 600,
-                  color: 'var(--text-secondary)'
-                }}>
-                  D{day.dayNumber}
-                </div>
+                <Link key={day.id || idx} to={`/workout/${activeRoutine.id}/${day.id}`} style={{ textDecoration: 'none' }}>
+                  <motion.div 
+                    whileTap={{ scale: 0.95 }}
+                    style={{ 
+                      padding: '0.75rem 0.5rem',
+                      borderRadius: 'var(--radius-md)', 
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                      background: 'var(--bg-tertiary)',
+                      border: '1px solid var(--border-subtle)',
+                      textAlign: 'center',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-tertiary)', marginBottom: '0.25rem' }}>DÍA</span>
+                    <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--accent-primary)', lineHeight: 1 }}>{day.dayNumber}</span>
+                    {day.muscleGroup && (
+                      <span className="small" style={{ fontSize: '0.625rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%', marginTop: '0.25rem' }}>
+                        {day.muscleGroup}
+                      </span>
+                    )}
+                  </motion.div>
+                </Link>
               ))}
             </div>
-
-            <Link to={`/workout/${activeRoutine.id}`} style={{ textDecoration: 'none' }}>
-              <button className="btn btn-primary" style={{ width: '100%', display: 'flex', gap: '0.5rem' }}>
-                <Play size={20} fill="currentColor" />
-                COMENZAR ENTRENAMIENTO
-              </button>
-            </Link>
           </div>
         ) : (
           <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center', borderStyle: 'dashed' }}>

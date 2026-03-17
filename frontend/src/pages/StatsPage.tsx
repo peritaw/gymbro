@@ -1,28 +1,65 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Flame, Trophy, CalendarDays, Activity, CheckCircle2 } from 'lucide-react';
+import { Flame, Trophy, Activity, CheckCircle2, TrendingUp, Search } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import type { Stats } from '../types';
+import type { Stats, Routine } from '../types';
 import api from '../api/client';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function StatsPage() {
   const { user } = useAuth();
   const [stats, setStats] = useState<Stats | null>(null);
+  const [routines, setRoutines] = useState<Routine[]>([]);
+  const [selectedExerciseId, setSelectedExerciseId] = useState<number | null>(null);
+  const [history, setHistory] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isHistLoading, setIsHistLoading] = useState(false);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
-        const { data } = await api.get('/training-logs/stats');
-        setStats(data);
+        const [statsRes, routinesRes] = await Promise.all([
+          api.get('/training-logs/stats'),
+          api.get('/routines')
+        ]);
+        setStats(statsRes.data);
+        setRoutines(routinesRes.data);
       } catch (error) {
-        console.error('Error fetching stats:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchStats();
+    fetchData();
   }, []);
+
+  const fetchExerciseHistory = async (exId: number) => {
+    setIsHistLoading(true);
+    try {
+      const { data } = await api.get(`/training-logs/history/${exId}`);
+      // Process data for chart: find max weight per date
+      const chartData = data.map((log: any) => {
+        const maxWeight = Math.max(...log.exerciseLogs.map((el: any) => el.weight), 0);
+        return {
+          date: new Date(log.date).toLocaleDateString('es', { day: '2-digit', month: '2-digit' }),
+          weight: maxWeight,
+          fullDate: log.date
+        };
+      }).sort((a: any, b: any) => new Date(a.fullDate).getTime() - new Date(b.fullDate).getTime());
+      
+      setHistory(chartData);
+    } catch (error) {
+      console.error('Error fetching history:', error);
+    } finally {
+      setIsHistLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedExerciseId) {
+      fetchExerciseHistory(selectedExerciseId);
+    }
+  }, [selectedExerciseId]);
 
   if (isLoading || !stats) {
     return (
@@ -127,27 +164,92 @@ export default function StatsPage() {
         </div>
       </motion.div>
 
-      {/* Monthly Stats */}
-      <h2 className="h3" style={{ marginBottom: '1rem' }}>Resumen Mensual</h2>
+      {/* Exercise Progress Section */}
+      <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <TrendingUp size={24} color="var(--accent-primary)" />
+        <h2 className="h3">Evolución de Fuerza</h2>
+      </div>
+
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="glass-panel" style={{ padding: '1.5rem' }}
+        transition={{ delay: 0.4 }}
+        className="glass-panel" 
+        style={{ padding: '1.5rem', marginBottom: '4rem' }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-          <div style={{ padding: '0.75rem', background: 'var(--accent-glow)', borderRadius: 'var(--radius-md)', color: 'var(--accent-primary)' }}>
-            <CalendarDays size={24} />
-          </div>
-          <div>
-            <p className="small">Entrenamientos Completados (Mes)</p>
-            <p className="h2">{stats.completedThisMonth}</p>
-          </div>
+        <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+          <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Search size={16} /> Seleccioná un ejercicio para ver tu progreso
+          </label>
+          <select 
+            className="form-input" 
+            style={{ appearance: 'auto', paddingRight: '2rem' }}
+            value={selectedExerciseId || ''}
+            onChange={(e) => setSelectedExerciseId(Number(e.target.value))}
+          >
+            <option value="" disabled>Elegir ejercicio...</option>
+            {routines.map(routine => (
+              <optgroup key={routine.id} label={routine.name}>
+                {routine.days.flatMap(day => day.exercises).map(ex => (
+                  <option key={ex.id} value={ex.id}>{ex.name}</option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
         </div>
-        
-        <p className="small" style={{ color: 'var(--text-tertiary)', fontStyle: 'italic', textAlign: 'center' }}>
-          Toda gota de sudor cuenta. ¡Seguí así!
-        </p>
+
+        {selectedExerciseId ? (
+          <div style={{ height: '250px', width: '100%', marginTop: '1rem' }}>
+            {isHistLoading ? (
+              <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: '20px', height: '20px', border: '2px solid var(--border-subtle)', borderTopColor: 'var(--accent-primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+              </div>
+            ) : history.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={history}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <XAxis 
+                    dataKey="date" 
+                    stroke="var(--text-tertiary)" 
+                    fontSize={10} 
+                    tickLine={false} 
+                    axisLine={false} 
+                  />
+                  <YAxis 
+                    stroke="var(--text-tertiary)" 
+                    fontSize={10} 
+                    tickLine={false} 
+                    axisLine={false}
+                    tickFormatter={(val) => `${val}kg`}
+                  />
+                  <Tooltip 
+                    contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', fontSize: '12px' }}
+                    itemStyle={{ color: 'var(--accent-primary)', fontWeight: 700 }}
+                    cursor={{ stroke: 'var(--accent-primary)', strokeWidth: 1, strokeDasharray: '4 4' }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="weight" 
+                    stroke="var(--accent-primary)" 
+                    strokeWidth={3} 
+                    dot={{ fill: 'var(--accent-primary)', r: 4, strokeWidth: 0 }} 
+                    activeDot={{ r: 6, strokeWidth: 0, fill: 'white' }}
+                    animationDuration={1500}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)', textAlign: 'center' }}>
+                <p className="small">No hay historial para este ejercicio todavía.<br/>¡Empezá a entrenar para ver tus datos!</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '2rem 0', opacity: 0.5 }}>
+            <Activity size={48} style={{ margin: '0 auto 1rem', display: 'block' }} />
+            <p className="small">Seleccioná un ejercicio de la lista superior para visualizar tus pesos históricos.</p>
+          </div>
+        )}
       </motion.div>
     </div>
   );

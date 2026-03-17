@@ -9,7 +9,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (credentials: RegisterCredentials) => Promise<void>;
-  updateProfile: (data: { name?: string, weeklyGoal?: number }) => Promise<void>;
+  updateProfile: (data: { name?: string, weeklyGoal?: number, weight?: number, height?: number }) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('gymbro_user');
   };
 
-  const updateProfile = async (data: { name?: string, weeklyGoal?: number }) => {
+  const updateProfile = async (data: { name?: string, weeklyGoal?: number, weight?: number, height?: number }) => {
     const res = await api.post<User>('/auth/profile', data);
     setUser(res.data);
     localStorage.setItem('gymbro_user', JSON.stringify(res.data));

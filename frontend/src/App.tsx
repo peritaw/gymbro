@@ -88,7 +88,7 @@ function AppRoutes() {
       
       {/* Workout view usually doesn't need bottom nav and needs mostly full screen space */}
       <Route 
-        path="/workout/:id" 
+        path="/workout/:id/:dayId?" 
         element={
           <ProtectedRoute>
             <div className="app-layout">
