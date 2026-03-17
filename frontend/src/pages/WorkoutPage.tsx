@@ -25,37 +25,15 @@ export default function WorkoutPage() {
   const [startTime] = useState(Date.now());
 
   useEffect(() => {
-    const initWorkout = async () => {
+    const fetchRoutine = async () => {
       try {
         const { data } = await api.get(`/routines/${id}`);
         setRoutine(data);
-        
         if (data.days && data.days.length > 0) {
           const selectedDay = dayId 
             ? data.days.find((d: any) => d.id === Number(dayId)) || data.days[0]
             : data.days[0];
           setDay(selectedDay);
-          
-          // Init trackers based on current week
-          const completeness: { [ex: number]: boolean[] } = {};
-          const performance: { [ex: number]: { weight: string, reps: string }[] } = {};
-          
-          selectedDay.exercises.forEach((ex: any) => {
-             // Find target for this week if periodized
-             const weekTarget = ex.weekTargets?.find((w: any) => w.week === weekNumber);
-             const targetSets = weekTarget?.sets || ex.sets;
-             const targetReps = weekTarget?.reps || ex.reps;
-             const targetWeight = weekTarget?.weight || ex.weight;
-
-             completeness[ex.id] = Array(targetSets).fill(false);
-             performance[ex.id] = Array(targetSets).fill({ 
-               weight: targetWeight?.toString() || '', 
-               reps: targetReps?.toString() || '' 
-             });
-          });
-          
-          setCompletedSets(completeness);
-          setSetPerformance(performance);
         } else {
           navigate('/routines');
         }
@@ -66,8 +44,44 @@ export default function WorkoutPage() {
         setIsLoading(false);
       }
     };
-    initWorkout();
-  }, [id, dayId, navigate, weekNumber]);
+    fetchRoutine();
+  }, [id, dayId, navigate]);
+
+  // Update targets when day or weekNumber changes
+  useEffect(() => {
+    if (!day) return;
+
+    const completeness: { [ex: number]: boolean[] } = {};
+    const performance: { [ex: number]: { weight: string, reps: string }[] } = {};
+
+    day.exercises.forEach((ex: any) => {
+      const weekTarget = ex.weekTargets?.find((w: any) => w.week === weekNumber);
+      const targetSets = weekTarget?.sets || ex.sets;
+
+      // Adjust completedSets if the number of sets changed for this week
+      const currentSets = completedSets[ex.id] || [];
+      if (currentSets.length !== targetSets) {
+        if (currentSets.length < targetSets) {
+          // Add missing sets
+          completeness[ex.id] = [...currentSets, ...Array(targetSets - currentSets.length).fill(false)];
+        } else {
+          // Truncate sets (be careful not to lose data if possible, but for targets it's okay)
+          completeness[ex.id] = currentSets.slice(0, targetSets);
+        }
+      } else {
+        completeness[ex.id] = currentSets;
+      }
+
+      // Initialize performance: each set gets its own unique object
+      performance[ex.id] = Array.from({ length: targetSets }).map((_, i) => ({
+        weight: setPerformance[ex.id]?.[i]?.weight || '',
+        reps: setPerformance[ex.id]?.[i]?.reps || '',
+      }));
+    });
+
+    setCompletedSets(completeness);
+    setSetPerformance(performance);
+  }, [day, weekNumber]);
 
   const toggleSet = (exerciseId: number, setIdx: number) => {
     const newSets = { ...completedSets };
@@ -253,8 +267,8 @@ export default function WorkoutPage() {
                 {ex.notes && <p className="small" style={{ marginTop: '0.25rem' }}>💡 {ex.notes}</p>}
                 
                 <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-                  <span className="small"><strong>{ex.sets}</strong> series</span>
-                  <span className="small"><strong>{ex.reps}</strong> reps</span>
+                  <span className="small"><strong>{ex.weekTargets?.find((w: any) => w.week === weekNumber)?.sets || ex.sets}</strong> series</span>
+                  <span className="small"><strong>{ex.weekTargets?.find((w: any) => w.week === weekNumber)?.reps || ex.reps}</strong> reps</span>
                 </div>
               </div>
 
@@ -281,7 +295,7 @@ export default function WorkoutPage() {
                       style={{ padding: '0.4rem', textAlign: 'center', fontSize: '0.875rem', height: '36px' }}
                       value={setPerformance[ex.id || 0]?.[setIdx]?.weight || ''}
                       onChange={(e) => updatePerfValue(ex.id || 0, setIdx, 'weight', e.target.value)}
-                      placeholder={ex.weight?.toString() || "0"}
+                      placeholder={ex.weekTargets?.find((w: any) => w.week === weekNumber)?.weight?.toString() || ex.weight?.toString() || "0"}
                     />
                     <input 
                       type="number" 
@@ -289,7 +303,7 @@ export default function WorkoutPage() {
                       style={{ padding: '0.4rem', textAlign: 'center', fontSize: '0.875rem', height: '36px' }}
                       value={setPerformance[ex.id || 0]?.[setIdx]?.reps || ''}
                       onChange={(e) => updatePerfValue(ex.id || 0, setIdx, 'reps', e.target.value)}
-                      placeholder={ex.reps?.toString() || "0"}
+                      placeholder={ex.weekTargets?.find((w: any) => w.week === weekNumber)?.reps?.toString() || ex.reps?.toString() || "0"}
                     />
                     <button
                       onClick={() => toggleSet(ex.id || 0, setIdx)}

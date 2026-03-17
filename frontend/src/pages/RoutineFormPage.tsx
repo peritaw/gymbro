@@ -247,7 +247,13 @@ export default function RoutineFormPage() {
                 <GripVertical size={20} color="var(--text-tertiary)" />
                 <div style={{ flex: 1 }} onClick={() => openExerciseModal(idx)}>
                   <p style={{ fontWeight: 600, fontSize: '1rem' }}>{ex.name}</p>
-                  <p className="small">{ex.sets} series x {ex.reps} reps {ex.weight ? `@ ${ex.weight}kg` : ''}</p>
+                  <p className="small">
+                    {ex.weekTargets ? (
+                      <span style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>Periodización Activa (4 Semanas)</span>
+                    ) : (
+                      `${ex.sets} series x ${ex.reps} reps ${ex.weight ? `@ ${ex.weight}kg` : ''}`
+                    )}
+                  </p>
                 </div>
                 <button className="btn-icon" onClick={(e) => { e.stopPropagation(); handleRemoveExercise(idx); }} style={{ color: 'var(--danger)' }}>
                   <X size={18} />
@@ -376,8 +382,9 @@ export default function RoutineFormPage() {
                       style={{ padding: '0.25rem', textAlign: 'center' }} 
                       value={target.sets} 
                       onChange={(e) => {
-                        const newTargets = [...currentExercise.weekTargets!];
-                        newTargets[idx].sets = parseInt(e.target.value) || 0;
+                        const newTargets = currentExercise.weekTargets!.map((t, i) => 
+                          i === idx ? { ...t, sets: parseInt(e.target.value) || 0 } : t
+                        );
                         setCurrentExercise({ ...currentExercise, weekTargets: newTargets });
                       }}
                     />
@@ -387,8 +394,9 @@ export default function RoutineFormPage() {
                       style={{ padding: '0.25rem', textAlign: 'center' }} 
                       value={target.reps} 
                       onChange={(e) => {
-                        const newTargets = [...currentExercise.weekTargets!];
-                        newTargets[idx].reps = parseInt(e.target.value) || 0;
+                        const newTargets = currentExercise.weekTargets!.map((t, i) => 
+                          i === idx ? { ...t, reps: parseInt(e.target.value) || 0 } : t
+                        );
                         setCurrentExercise({ ...currentExercise, weekTargets: newTargets });
                       }}
                     />
@@ -398,8 +406,9 @@ export default function RoutineFormPage() {
                       style={{ padding: '0.25rem', textAlign: 'center' }} 
                       value={target.weight} 
                       onChange={(e) => {
-                        const newTargets = [...currentExercise.weekTargets!];
-                        newTargets[idx].weight = parseFloat(e.target.value) || 0;
+                        const newTargets = currentExercise.weekTargets!.map((t, i) => 
+                          i === idx ? { ...t, weight: parseFloat(e.target.value) || 0 } : t
+                        );
                         setCurrentExercise({ ...currentExercise, weekTargets: newTargets });
                       }}
                     />

@@ -60,6 +60,7 @@ export class RoutineService {
           weight: exDto.weight,
           notes: exDto.notes,
           order: exDto.order ?? idx,
+          weekTargets: exDto.weekTargets,
         })),
       })),
     });
@@ -96,6 +97,7 @@ export class RoutineService {
               weight: exDto.weight,
               notes: exDto.notes,
               order: exDto.order ?? idx,
+              weekTargets: exDto.weekTargets,
             }),
           ),
         }),
