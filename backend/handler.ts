@@ -2,8 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './src/app.module';
 
-console.log('Serverless script loaded!');
-
 let cachedApp: any;
 
 async function createApp() {
@@ -28,12 +26,9 @@ async function createApp() {
 }
 
 export default async function handler(req: any, res: any) {
-  console.log('Incoming request:', req.method, req.url);
   try {
     if (!cachedApp) {
-      console.log('Initializing NestJS app...');
       cachedApp = await createApp();
-      console.log('NestJS app initialized.');
     }
     const httpAdapter = cachedApp.getHttpAdapter().getInstance();
     httpAdapter(req, res);
@@ -41,10 +36,10 @@ export default async function handler(req: any, res: any) {
     console.error('Error in serverless handler:', error);
     res.status(500).json({ 
       error: 'Internal Server Error', 
-      message: error.message,
-      stack: error.stack
+      message: error.message 
     });
   }
 }
+
 
 
