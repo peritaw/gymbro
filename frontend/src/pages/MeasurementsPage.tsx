@@ -137,7 +137,7 @@ export default function MeasurementsPage() {
                 <Tooltip 
                   contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}
                   itemStyle={{ color: 'var(--accent-primary)', fontWeight: 600 }}
-                  formatter={(value: number) => [`${value} kg`, 'Peso']}
+                  formatter={(value: any) => [`${value} kg`, 'Peso']}
                 />
                 <Line 
                   type="monotone" 

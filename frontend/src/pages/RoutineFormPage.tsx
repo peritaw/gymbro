@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Plus, Save, Trash2, GripVertical, ChevronRight, X } from 'lucide-react';
+import { ArrowLeft, Plus, Save, Trash2, GripVertical, X } from 'lucide-react';
 import api from '../api/client';
-import type { Routine, RoutineDay, Exercise } from '../types';
+import type { RoutineDay, Exercise } from '../types';
 
 export default function RoutineFormPage() {
   const { id } = useParams();

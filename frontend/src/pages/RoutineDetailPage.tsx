@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Play, Clock, Dumbbell, CalendarDays } from 'lucide-react';
+import { ArrowLeft, Play, Dumbbell, CalendarDays } from 'lucide-react';
 import api from '../api/client';
 import type { Routine } from '../types';
 
@@ -108,7 +108,7 @@ export default function RoutineDetailPage() {
                       <span>{ex.sets} series</span>
                       <span>•</span>
                       <span>{ex.reps} reps</span>
-                      {ex.weight > 0 && (
+                      {(ex.weight ?? 0) > 0 && (
                         <>
                           <span>•</span>
                           <span>{ex.weight} kg</span>
