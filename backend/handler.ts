@@ -8,8 +8,15 @@ async function createApp() {
   const app = await NestFactory.create(AppModule, { logger: ['error', 'warn'] });
 
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: [
+      process.env.FRONTEND_URL || 'http://localhost:5173',
+      'http://localhost:5173',
+      'http://127.0.0.1:5173'
+    ],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
+    allowedHeaders: 'Content-Type, Accept, Authorization',
+    optionsSuccessStatus: 204,
   });
 
   app.useGlobalPipes(

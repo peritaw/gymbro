@@ -56,4 +56,21 @@ export class TrainingLogController {
   delete(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
     return this.trainingLogService.delete(id, req.user.userId);
   }
+
+  @Get('stats/:clientId')
+  getClientStats(
+    @Param('clientId', ParseIntPipe) clientId: number,
+    @Request() req: any,
+  ) {
+    return this.trainingLogService.getClientStats(req.user.userId, clientId);
+  }
+
+  @Get('history/:clientId/:exerciseId')
+  getClientHistory(
+    @Param('clientId', ParseIntPipe) clientId: number,
+    @Param('exerciseId', ParseIntPipe) exerciseId: number,
+    @Request() req: any,
+  ) {
+    return this.trainingLogService.getClientExerciseHistory(req.user.userId, clientId, exerciseId);
+  }
 }

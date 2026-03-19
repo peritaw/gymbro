@@ -3,12 +3,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 import { TrainingLog } from './entities/training-log.entity';
 import { CreateTrainingLogDto } from './dto/training-log.dto';
+import { User } from '../auth/entities/user.entity';
 
 @Injectable()
 export class TrainingLogService {
   constructor(
     @InjectRepository(TrainingLog)
     private readonly logRepository: Repository<TrainingLog>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async findAll(
@@ -182,5 +185,17 @@ export class TrainingLogService {
     const log = await this.logRepository.findOne({ where: { id, userId } });
     if (!log) throw new NotFoundException('Training log not found');
     await this.logRepository.remove(log);
+  }
+
+  async getClientStats(trainerId: number, clientId: number) {
+    const client = await this.userRepository.findOne({ where: { id: clientId, trainerId } });
+    if (!client) throw new NotFoundException('Cliente no encontrado o no asignado a este entrenador');
+    return this.getStats(clientId);
+  }
+
+  async getClientExerciseHistory(trainerId: number, clientId: number, exerciseId: number) {
+    const client = await this.userRepository.findOne({ where: { id: clientId, trainerId } });
+    if (!client) throw new NotFoundException('Cliente no encontrado o no asignado a este entrenador');
+    return this.getExerciseHistory(clientId, exerciseId);
   }
 }

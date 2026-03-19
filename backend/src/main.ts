@@ -4,10 +4,14 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.setGlobalPrefix('api');
 
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
+    allowedHeaders: 'Content-Type, Accept, Authorization',
+    optionsSuccessStatus: 204,
   });
 
   app.useGlobalPipes(
@@ -18,7 +22,7 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(3000, '0.0.0.0');
-  console.log('🏋️ Gym Bro API running on http://localhost:3000');
+  await app.listen(4002, '0.0.0.0');
+  console.log('🏋️ Gym Bro API running on http://localhost:4002');
 }
 bootstrap();

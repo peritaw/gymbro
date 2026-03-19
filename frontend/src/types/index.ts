@@ -1,10 +1,24 @@
+export const UserRole = {
+  COMPANY: 'COMPANY',
+  TRAINER: 'TRAINER',
+  CLIENT: 'CLIENT',
+} as const;
+
+export type UserRole = (typeof UserRole)[keyof typeof UserRole];
+
 export interface User {
   id: number;
   email: string;
   name: string;
+  role: UserRole;
   weeklyGoal: number;
   weight?: number;
   height?: number;
+  companyId?: number;
+  trainerId?: number;
+  pendingCompanyId?: number;
+  trainerDescription?: string;
+  trainerSpecialty?: string;
 }
 
 export interface AuthResponse {
@@ -97,4 +111,5 @@ export interface LoginCredentials {
 
 export interface RegisterCredentials extends LoginCredentials {
   name: string;
+  role: UserRole;
 }

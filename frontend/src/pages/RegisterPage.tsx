@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
-import { Mail, Lock, User, AlertCircle } from 'lucide-react';
+import { Mail, Lock, User, AlertCircle, Briefcase, GraduationCap, Users } from 'lucide-react';
+import { UserRole } from '../types';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState<UserRole>(UserRole.CLIENT);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -26,7 +28,7 @@ export default function RegisterPage() {
     setIsSubmitting(true);
 
     try {
-      await register({ name, email, password });
+      await register({ name, email, password, role });
       navigate('/');
     } catch (err: any) {
       setError(
@@ -104,6 +106,57 @@ export default function RegisterPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Rol</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+              <button
+                type="button"
+                onClick={() => setRole(UserRole.CLIENT)}
+                className={`btn ${role === UserRole.CLIENT ? 'btn-primary' : 'glass-panel'}`}
+                style={{ 
+                  flexDirection: 'column', 
+                  gap: '0.25rem', 
+                  padding: '1rem 0',
+                  fontSize: '0.75rem',
+                  border: role === UserRole.CLIENT ? 'none' : '1px solid rgba(255,255,255,0.1)'
+                }}
+              >
+                <Users size={20} />
+                Alumno
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole(UserRole.TRAINER)}
+                className={`btn ${role === UserRole.TRAINER ? 'btn-primary' : 'glass-panel'}`}
+                style={{ 
+                  flexDirection: 'column', 
+                  gap: '0.25rem', 
+                  padding: '1rem 0',
+                  fontSize: '0.75rem',
+                  border: role === UserRole.TRAINER ? 'none' : '1px solid rgba(255,255,255,0.1)'
+                }}
+              >
+                <GraduationCap size={20} />
+                Entrenador
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole(UserRole.COMPANY)}
+                className={`btn ${role === UserRole.COMPANY ? 'btn-primary' : 'glass-panel'}`}
+                style={{ 
+                  flexDirection: 'column', 
+                  gap: '0.25rem', 
+                  padding: '1rem 0',
+                  fontSize: '0.75rem',
+                  border: role === UserRole.COMPANY ? 'none' : '1px solid rgba(255,255,255,0.1)'
+                }}
+              >
+                <Briefcase size={20} />
+                Empresa
+              </button>
             </div>
           </div>
 

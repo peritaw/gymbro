@@ -4,8 +4,11 @@ import {
   Column,
   CreateDateColumn,
   OneToMany,
+  ManyToOne,
 } from 'typeorm';
 import { Routine } from '../../routine/entities/routine.entity';
+import { UserRole } from '../enums/user-role.enum';
+
 
 @Entity('users')
 export class User {
@@ -39,6 +42,40 @@ export class User {
   @CreateDateColumn()
   createdAt: Date;
 
+  @Column({
+    type: 'enum',
+    enum: UserRole,
+    default: UserRole.CLIENT,
+  })
+  role: UserRole;
+
+  @Column({ nullable: true })
+  companyId: number;
+
+  @Column({ nullable: true })
+  trainerId: number;
+
+  @Column({ nullable: true })
+  pendingCompanyId: number;
+
+  @Column({ type: 'text', nullable: true })
+  trainerDescription: string;
+
+  @Column({ nullable: true })
+  trainerSpecialty: string;
+
   @OneToMany(() => Routine, (routine) => routine.user)
   routines: Routine[];
+
+  @ManyToOne(() => User, (user) => user.trainers, { nullable: true })
+  company: User;
+
+  @OneToMany(() => User, (user) => user.company)
+  trainers: User[];
+
+  @ManyToOne(() => User, (user) => user.clients, { nullable: true })
+  trainer: User;
+
+  @OneToMany(() => User, (user) => user.trainer)
+  clients: User[];
 }

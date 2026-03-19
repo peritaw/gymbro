@@ -15,6 +15,7 @@ import WorkoutPage from './pages/WorkoutPage';
 import StatsPage from './pages/StatsPage';
 import ProfilePage from './pages/ProfilePage';
 import MeasurementsPage from './pages/MeasurementsPage';
+import ClientTrackingPage from './pages/ClientTrackingPage';
 
 function AppRoutes() {
   return (
@@ -118,6 +119,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <UserLayout>
               <MeasurementsPage />
+            </UserLayout>
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/tracking/:clientId" 
+        element={
+          <ProtectedRoute>
+            <UserLayout>
+              <ClientTrackingPage />
             </UserLayout>
           </ProtectedRoute>
         } 
